@@ -1,0 +1,66 @@
+---
+
+
+- get_url:
+    url: "https://archive.apache.org/dist/cassandra/3.11.3/{{ version }}"
+    dest: "{{ cassandra_home }}{{version }}"
+
+- name: Create a  directory
+  file:
+    path: "{{ cassandra_home }}/apache-cassandra"
+    state: directory
+    mode: 0755
+      
+- name: Extract cassandra source
+  unarchive:
+    src: "{{ cassandra_home }}{{ version }}"
+    dest: "{{ cassandra_home }}/apache-cassandra"
+    extra_opts: [--strip-components=1]
+    remote_src: yes
+
+- name: Apply Cassandra Configuration
+  template:
+    src: "templates/cassandra.yaml.j2"
+    dest: "{{ cassandra_home }}{{cassandra_configuration_file}}/cassandra.yaml"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+
+- name: Set the DC for Cassandra
+  lineinfile:
+    dest: "{{ cassandra_home }}{{cassandra_configuration_file}}/cassandra-rackdc.properties"
+    regexp: '^dc='
+    line: "dc={{ cassandra_dc }}"
+  when:
+    - cassandra_dc is defined
+
+- name: Change jvm.options
+  lineinfile:
+    dest: "{{ cassandra_home }}{{cassandra_configuration_file}}/jvm.options"
+    regexp: '#-Xms4G'
+    line: "-Xms8G"
+
+- name: Change jvm.options
+  lineinfile:
+    dest: "{{ cassandra_home }}{{cassandra_configuration_file}}/jvm.options"
+    regexp: '#-Xmx4G'
+    line: "-Xmx8G"
+      
+  
+
+- name: Start the cassandra service
+  args:
+    chdir: "{{ cassandra_home }}{{ cassandra_bin_file }}"
+  command: ./cassandra -p cassandra.pid -Dcassandra.ignore_rack=true -Dcassandra.ignore_dc=true
+  async: 2100
+  poll: 0 
+  register: import_db
+
+
+- name: Check if cassandra service is complete
+  async_status:
+    jid: "{{ import_db.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+
+

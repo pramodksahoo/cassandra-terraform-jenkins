@@ -1,0 +1,14 @@
+version: apache-cassandra-3.11.3-bin.tar.gz
+
+#user: cassandra
+
+#clustername: Cassandra-cluster
+#cassandra_dc: dc
+
+
+cassandra_configuration_templ: roles/cassandra/templates
+
+cassandra_configuration_file: apache-cassandra/conf   
+
+cassandra_bin_file: apache-cassandra/bin/
+cassandra_home: /home/{{ user }}/

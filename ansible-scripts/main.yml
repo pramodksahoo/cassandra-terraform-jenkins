@@ -1,0 +1,28 @@
+---
+#
+# Playbook to install the Cassandra
+#
+#
+
+- hosts: cassandra
+  #remote_user: ec2-user
+  become: yes
+  become_user: root
+  vars_files:
+    - vars/main.yml
+  roles:
+    - {role: java}
+    - {role: user}
+    
+- hosts: cassandra
+  #remote_user: "ec2-user"
+  become: yes
+  become_user: "{{ user }}"
+  become_method: su
+  become_exe: sudo su - {{ user }}
+  vars_files:
+    - vars/main.yml
+  roles:
+    - {role: cassandra}
+
+

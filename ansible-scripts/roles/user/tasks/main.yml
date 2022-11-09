@@ -1,0 +1,15 @@
+- name: Create a  user
+  user:
+    name: "{{ user }}"
+    #password: "{{ password }}"
+    groups:
+      - wheel
+    state: present
+    
+- name: add lines
+  lineinfile: 
+    dest: /etc/sudoers
+    line: '{{ item }}'
+  with_items:
+    - "'{{ user }}' ALL=(ALL) NOPASSWD: ALL"
+   
